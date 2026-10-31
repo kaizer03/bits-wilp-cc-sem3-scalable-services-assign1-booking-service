@@ -1,0 +1,29 @@
+name: resource-desk-booking
+services:
+  database:
+    image: postgres:17-alpine
+    environment:
+      POSTGRES_USER: booking
+      POSTGRES_DB: booking
+      POSTGRES_PASSWORD: ${BOOKING_DB_PASSWORD:?Set BOOKING_DB_PASSWORD in .env}
+    volumes: [booking-data:/var/lib/postgresql/data]
+    healthcheck:
+      test: [CMD-SHELL, "pg_isready -U booking -d booking"]
+      interval: 5s
+      timeout: 3s
+      retries: 15
+  booking:
+    build: .
+    image: resource-desk/booking:1.0.0
+    environment:
+      PGHOST: database
+      PGUSER: booking
+      PGDATABASE: booking
+      PGPASSWORD: ${BOOKING_DB_PASSWORD}
+      EQUIPMENT_SERVICE_URL: ${EQUIPMENT_SERVICE_URL:-http://host.docker.internal:4180}
+    extra_hosts: ["host.docker.internal:host-gateway"]
+    ports: ["127.0.0.1:4181:4181"]
+    depends_on:
+      database: {condition: service_healthy}
+volumes:
+  booking-data:

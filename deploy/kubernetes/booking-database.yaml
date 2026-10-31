@@ -1,0 +1,57 @@
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: booking-data
+  namespace: resource-desk
+spec:
+  accessModes: [ReadWriteOnce]
+  resources:
+    requests:
+      storage: 1Gi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: booking-db
+  namespace: resource-desk
+spec:
+  selector: {app: booking-db}
+  ports: [{port: 5432, targetPort: 5432}]
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: booking-db
+  namespace: resource-desk
+spec:
+  replicas: 1
+  strategy: {type: Recreate}
+  selector:
+    matchLabels: {app: booking-db}
+  template:
+    metadata:
+      labels: {app: booking-db}
+    spec:
+      containers:
+        - name: postgres
+          image: postgres:17-alpine
+          env:
+            - {name: POSTGRES_USER, value: booking}
+            - {name: POSTGRES_DB, value: booking}
+            - name: POSTGRES_PASSWORD
+              valueFrom:
+                secretKeyRef: {name: database-credentials, key: booking-password}
+          ports: [{containerPort: 5432}]
+          readinessProbe:
+            exec:
+              command: [pg_isready, -U, booking, -d, booking]
+            initialDelaySeconds: 5
+            periodSeconds: 5
+          resources:
+            requests: {cpu: 50m, memory: 128Mi}
+            limits: {cpu: 500m, memory: 384Mi}
+          volumeMounts:
+            - {name: data, mountPath: /var/lib/postgresql/data}
+      volumes:
+        - name: data
+          persistentVolumeClaim: {claimName: booking-data}
