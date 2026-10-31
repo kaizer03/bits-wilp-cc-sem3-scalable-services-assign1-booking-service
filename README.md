@@ -1,6 +1,6 @@
 # Resource Desk booking service
 
-Reservations and availability for shared department equipment. This service owns booking data and validates equipment through the [equipment service](https://github.com/kaizer03/bits-wilp-cc-sem3-scalable-services-assign1). It can be built, deployed and tested independently.
+Reservations and availability for shared department equipment. This service owns booking data and validates equipment through the [equipment service](https://github.com/kaizer03/bits-wilp-cc-sem3-scalable-services-assign1-equipment-service). It can be built, deployed and tested independently.
 
 ## Reservation rules
 
